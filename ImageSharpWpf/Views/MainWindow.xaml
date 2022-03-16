@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:views="clr-namespace:ImageSharpWpf.Views"
     xmlns:wpfui="clr-namespace:WPFUI.Controls;assembly=WPFUI"
     xmlns:wpfuiCommon="clr-namespace:WPFUI.Common;assembly=WPFUI"
     Width="1200"
@@ -15,6 +16,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -28,12 +30,7 @@
             Grid.ColumnSpan="2"
             ApplicationNavigation="True" />
 
-        <Menu Grid.Row="1" Grid.ColumnSpan="2">
-            <MenuItem
-                Command="{Binding FileSelectCommand}"
-                Header="画像選択"
-                Icon="{x:Static wpfuiCommon:Icon.Open20}" />
-        </Menu>
+        <views:HomeMenuView Grid.Row="1" Grid.ColumnSpan="2" />
 
         <Border
             Grid.Row="2"
@@ -51,5 +48,12 @@
             BorderThickness="1">
             <Image Source="{Binding DstImage}" />
         </Border>
+
+        <TextBlock
+            Grid.Row="3"
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            Text="{Binding ElapsedTime}" />
     </Grid>
 </Window>

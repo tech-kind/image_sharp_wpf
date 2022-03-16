@@ -1,62 +1,74 @@
-﻿using Microsoft.Win32;
+﻿using ImageSharpWpf.Modules;
+using MessagePipe;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using Prism.Commands;
 using Prism.Mvvm;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.ColorSpaces;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static ImageSharpWpf.Utils.TopicName;
 
 namespace ImageSharpWpf.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private BitmapSource _srcImage;
+        private readonly IImageManager _imageManager;
+        private readonly IAsyncSubscriber<string, BitmapSource> _subscriber;
+        private readonly IAsyncSubscriber<string, string> _strSubscriber;
 
-        public BitmapSource SrcImage
+        private BitmapSource? _srcImage;
+
+        public BitmapSource? SrcImage
         {
             get { return _srcImage; }
             set { SetProperty(ref _srcImage, value); }
         }
 
+        private BitmapSource? _dstImage;
 
-        private BitmapSource _dstImage;
-
-        public BitmapSource DstImage
+        public BitmapSource? DstImage
         {
             get { return _dstImage; }
             set { SetProperty(ref _dstImage, value); }
         }
 
-        public DelegateCommand FileSelectCommand { get; private set; }
+        private string? _elapsedTime;
 
-        public MainWindowViewModel()
+        public string? ElapsedTime
         {
-            FileSelectCommand = new DelegateCommand(FileSelection);
+            get { return _elapsedTime; }
+            set { SetProperty(ref _elapsedTime, value); }
         }
 
-        private void FileSelection()
+        public MainWindowViewModel(IServiceProvider serviceProvider)
         {
-            var dialog = new OpenFileDialog();
+            _imageManager = serviceProvider.GetRequiredService<IImageManager>();
 
-            if (dialog.ShowDialog() == true)
-            {
-                var file = dialog.FileName;
-                using Image<Rgb24> image = Image.Load<Rgb24>(file);
-                byte[] pixelBytes = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgb24>()];
-                image.CopyPixelDataTo(pixelBytes);
+            _subscriber = serviceProvider.GetRequiredService<IAsyncSubscriber<string, BitmapSource>>();
+            _strSubscriber = serviceProvider.GetRequiredService<IAsyncSubscriber<string, string>>();
+            _subscriber.Subscribe(IMAGE_MANAGER_SRC_IMAGE, SetSrcImage);
+            _subscriber.Subscribe(IMAGE_MANAGER_DST_IMAGE, SetDstImage);
+            _strSubscriber.Subscribe(IMAGE_MANAGER_ELAPSED_TIME, SetElapsedTime);
+        }
 
-                var bmp = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Rgb24, null, pixelBytes, image.Width * 3);
-                SrcImage = bmp;
-            }
+        private ValueTask SetSrcImage(BitmapSource bitmap, CancellationToken token)
+        {
+            SrcImage = bitmap;
+            return ValueTask.CompletedTask;
+        }
+
+        private ValueTask SetDstImage(BitmapSource bitmap, CancellationToken token)
+        {
+            DstImage = bitmap;
+            return ValueTask.CompletedTask;
+        }
+
+        private ValueTask SetElapsedTime(string time, CancellationToken token)
+        {
+            ElapsedTime = time;
+            return ValueTask.CompletedTask;
         }
     }
 }
