@@ -3,6 +3,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -32,218 +34,160 @@ namespace ImageSharpWpf.Utils
 
         public static Image<Rgb24> ConvertFromRGBToBGR(Image<Rgb24> image)
         {
-            var dst = new Image<Rgb24>(image.Width, image.Height);
-            int height = image.Height;
-            image.ProcessPixelRows(dst, (srcAccessor, dstAccessor) =>
-            {
-                for (int i = 0; i < height; i++)
-                {
-                    Span<Rgb24> srcPixelRow = srcAccessor.GetRowSpan(i);
-                    Span<Rgb24> dstPixelRow = dstAccessor.GetRowSpan(i);
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            Rgb24[] bgrBytes = new Rgb24[image.Width * image.Height];
+            image.CopyPixelDataTo(rgbBytes);
 
-                    for (int x = 0; x < srcPixelRow.Length; x++)
-                    {
-                        dstPixelRow[x].R = srcPixelRow[x].B;
-                        dstPixelRow[x].G = srcPixelRow[x].G;
-                        dstPixelRow[x].B = srcPixelRow[x].R;
-                    }
-                }
+            Parallel.For(0, rgbBytes.Length, (i) =>
+            {
+                bgrBytes[i].R = rgbBytes[i].B;
+                bgrBytes[i].G = rgbBytes[i].G;
+                bgrBytes[i].B = rgbBytes[i].R;
             });
-            return dst;
+
+            return Image.LoadPixelData(bgrBytes, image.Width, image.Height);
         }
 
         public static Image<L8> ConvertGray(Image<Rgb24> color)
         {
-            var gray = new Image<L8>(color.Width, color.Height);
-            int height = color.Height;
-            color.ProcessPixelRows(gray, (srcAccessor, grayAccessor) =>
-            {
-                for (int i = 0; i < height; i++)
-                {
-                    Span<Rgb24> srcPixelRow = srcAccessor.GetRowSpan(i);
-                    Span<L8> grayPixelRow = grayAccessor.GetRowSpan(i);
+            Rgb24[] colorBytes = new Rgb24[color.Width * color.Height];
+            L8[] grayBytes = new L8[color.Width * color.Height];
+            color.CopyPixelDataTo(colorBytes);
 
-                    for (int x = 0; x < srcPixelRow.Length; x++)
-                    {
-                        var gray_value = srcPixelRow[x].R * 0.2126 + srcPixelRow[x].G * 0.7152
-                            + srcPixelRow[x].B * 0.0722;
-                        if (gray_value > byte.MaxValue) gray_value = byte.MaxValue;
-                        if (gray_value < byte.MinValue) gray_value = byte.MinValue;
-                        grayPixelRow[x].PackedValue = (byte)gray_value;
-                    }
+            Parallel.For(0, colorBytes.Length, (i) =>
+            {
+                grayBytes[i].PackedValue = (byte)(colorBytes[i].R * 0.2126 + colorBytes[i].G * 0.7152
+                    + colorBytes[i].B * 0.0722);
+            });
+
+            return Image.LoadPixelData(grayBytes, color.Width, color.Height);
+        }
+
+        public static Image<L8> BinaryThreshold(Image<L8> image, int threshold)
+        {
+            L8[] imgBytes = new L8[image.Width * image.Height];
+            L8[] threshBytes = new L8[image.Width * image.Height];
+            image.CopyPixelDataTo(imgBytes);
+
+            Parallel.For(0, imgBytes.Length, (i) =>
+            {
+                if (imgBytes[i].PackedValue < threshold)
+                {
+                    threshBytes[i].PackedValue = 0;
+                }
+                else
+                {
+                    threshBytes[i].PackedValue = 255;
                 }
             });
 
-            return gray;
+            return Image.LoadPixelData(threshBytes, image.Width, image.Height);
         }
 
-        public static void BinaryThreshold(ref Image<L8> image, int threshold)
+        public static Image<L8> OtsuThreshold(Image<L8> image)
         {
-            image.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<L8> pixelRow = accessor.GetRowSpan(y);
+            L8[] imgBytes = new L8[image.Width * image.Height];
+            image.CopyPixelDataTo(imgBytes);
 
-                    // pixelRow.Length has the same value as accessor.Width,
-                    // but using pixelRow.Length allows the JIT to optimize away bounds checks:
-                    for (int x = 0; x < pixelRow.Length; x++)
-                    {
-                        // Get a reference to the pixel at position x
-                        ref L8 pixel = ref pixelRow[x];
-                        if (pixel.PackedValue > threshold)
-                        {
-                            pixel.PackedValue = 255;
-                        }
-                        else
-                        {
-                            pixel.PackedValue = 0;
-                        }
-                    }
-                }
-            });
-        }
-
-        public static void OtsuThreshold(ref Image<L8> image)
-        {
             int height = image.Height;
             int width = image.Width;
 
             // determine threshold
-            double w0 = 0, w1 = 0;
-            double m0 = 0, m1 = 0;
-            double max_sb = 0, sb = 0;
+            double max_sb = 0;
             int th = 0;
 
-            for (int t = 1; t < 254; t++)
+            var syncObject = new object();
+
+            Parallel.For(1, 254, (t) =>
             {
-                w0 = 0;
-                w1 = 0;
-                m0 = 0;
-                m1 = 0;
+                double w0 = 0;
+                double w1 = 0;
+                double m0 = 0;
+                double m1 = 0;
 
-                image.ProcessPixelRows(accessor =>
+                for (int i = 0; i < imgBytes.Length; i++)
                 {
-                    for (int y = 0; y < accessor.Height; y++)
+                    if (imgBytes[i].PackedValue < t)
                     {
-                        Span<L8> pixelRow = accessor.GetRowSpan(y);                        
-
-                        // pixelRow.Length has the same value as accessor.Width,
-                        // but using pixelRow.Length allows the JIT to optimize away bounds checks:
-                        for (int x = 0; x < pixelRow.Length; x++)
-                        {
-                            // Get a reference to the pixel at position x
-                            ref L8 pixel = ref pixelRow[x];
-                            if (pixel.PackedValue < t)
-                            {
-                                w0++;
-                                m0 += pixel.PackedValue;
-                            }
-                            else
-                            {
-                                w1++;
-                                m1 += pixel.PackedValue;
-                            }
-                        }
+                        w0++;
+                        m0 += imgBytes[i].PackedValue;
                     }
-                });
+                    else
+                    {
+                        w1++;
+                        m1 += imgBytes[i].PackedValue;
+                    }
+                }
 
                 m0 /= w0;
                 m1 /= w1;
                 w0 /= (height * width);
                 w1 /= (height * width);
-                sb = w0 * w1 * Math.Pow((m0 - m1), 2);
+                double sb = w0 * w1 * Math.Pow((m0 - m1), 2);
 
-                if (sb > max_sb)
+                lock (syncObject)
                 {
-                    max_sb = sb;
-                    th = t;
+                    if (sb > max_sb)
+                    {
+                        max_sb = sb;
+                        th = t;
+                    }
                 }
-            }
+            });
 
-            BinaryThreshold(ref image, th);
+            return BinaryThreshold(image, th);
         }
 
         public static Image<Rgb48> ConvertFromRGBToHSV(Image<Rgb24> image)
         {
-            var dst = new Image<Rgb48>(image.Width, image.Height);
-            int height = image.Height;
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            Rgb48[] hsvBytes = new Rgb48[image.Width * image.Height];
+            image.CopyPixelDataTo(rgbBytes);
 
-            double r, g, b;
-
-            image.ProcessPixelRows(dst, (srcAccessor, dstAccessor) =>
+            Parallel.For(0, rgbBytes.Length, (i) =>
             {
-                for (int i = 0; i < height; i++)
-                {
-                    Span<Rgb24> srcPixelRow = srcAccessor.GetRowSpan(i);
-                    Span<Rgb48> dstPixelRow = dstAccessor.GetRowSpan(i);
-
-                    for (int x = 0; x < srcPixelRow.Length; x++)
-                    {
-                        r = srcPixelRow[x].R;
-                        g = srcPixelRow[x].G;
-                        b = srcPixelRow[x].B;
-                        
-                        GetHSV(r, g, b, out double h, out double s, out double v);
-
-                        dstPixelRow[x].R = (ushort)h;
-                        dstPixelRow[x].G = (ushort)s;
-                        dstPixelRow[x].B = (ushort)v;
-                    }
-                }
+                GetHSV(rgbBytes[i].R, rgbBytes[i].G, rgbBytes[i].B,
+                    out ushort h, out ushort s, out ushort v);
+                hsvBytes[i].R = h;
+                hsvBytes[i].G = s;
+                hsvBytes[i].B = v;
             });
-            return dst;
+
+            return Image.LoadPixelData(hsvBytes, image.Width, image.Height);
         }
 
         public static Image<Rgb24> ConvertFromHSVToRGB(Image<Rgb48> image)
         {
-            var dst = new Image<Rgb24>(image.Width, image.Height);
-            int height = image.Height;
+            Rgb48[] hsvBytes = new Rgb48[image.Width * image.Height];
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            image.CopyPixelDataTo(hsvBytes);
 
-            double h, s, v;
-
-            image.ProcessPixelRows(dst, (srcAccessor, dstAccessor) =>
+            Parallel.For(0, hsvBytes.Length, (i) =>
             {
-                for (int i = 0; i < height; i++)
-                {
-                    Span<Rgb48> srcPixelRow = srcAccessor.GetRowSpan(i);
-                    Span<Rgb24> dstPixelRow = dstAccessor.GetRowSpan(i);
-
-                    for (int x = 0; x < srcPixelRow.Length; x++)
-                    {
-                        h = srcPixelRow[x].R;
-                        s = srcPixelRow[x].G;
-                        v = srcPixelRow[x].B;
-
-                        GetRGB(h, s, v, out double r, out double g, out double b);
-
-                        dstPixelRow[x].R = (byte)r;
-                        dstPixelRow[x].G = (byte)g;
-                        dstPixelRow[x].B = (byte)b;
-                    }
-                }
+                GetRGB(hsvBytes[i].R, hsvBytes[i].G, hsvBytes[i].B,
+                    out double r, out double g, out double b);
+                rgbBytes[i].R = (byte)r;
+                rgbBytes[i].G = (byte)g;
+                rgbBytes[i].B = (byte)b;
             });
-            return dst;
+
+            return Image.LoadPixelData(rgbBytes, image.Width, image.Height);
         }
 
-        public static void InverseHue(ref Image<Rgb48> hsv)
+        public static Image<Rgb48> InverseHue(Image<Rgb48> image)
         {
-            hsv.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<Rgb48> pixelRow = accessor.GetRowSpan(y);
+            Rgb48[] hsvBytes = new Rgb48[image.Width * image.Height];
+            Rgb48[] inverseBytes = new Rgb48[image.Width * image.Height];
+            image.CopyPixelDataTo(hsvBytes);
 
-                    // pixelRow.Length has the same value as accessor.Width,
-                    // but using pixelRow.Length allows the JIT to optimize away bounds checks:
-                    for (int x = 0; x < pixelRow.Length; x++)
-                    {
-                        var h = pixelRow[x].R;
-                        h = (ushort)((h + 180) % 360);
-                        pixelRow[x].R = h;
-                    }
-                }
+            Parallel.For(0, hsvBytes.Length, (i) =>
+            {
+                inverseBytes[i].R = (ushort)((hsvBytes[i].R + 180) % 360);
+                inverseBytes[i].G = hsvBytes[i].G;
+                inverseBytes[i].B = hsvBytes[i].B;
             });
+
+            return Image.LoadPixelData(inverseBytes, image.Width, image.Height);
         }
 
         /// <summary>
@@ -255,8 +199,8 @@ namespace ImageSharpWpf.Utils
         /// <param name="h"></param>
         /// <param name="s"></param>
         /// <param name="v"></param>
-        private static void GetHSV(double r, double g, double b,
-            out double h, out double s, out double v)
+        private static void GetHSV(byte r, byte g, byte b,
+            out ushort h, out ushort s, out ushort v)
         {
             var max = Math.Max(r, Math.Max(g, b));
             var min = Math.Min(r, Math.Min(g, b));
@@ -269,18 +213,18 @@ namespace ImageSharpWpf.Utils
             }
             else if (min == b)
             {
-                h = 60 * (g - r) / (max - min) + 60;
+                h = (ushort)(60 * (g - r) / (max - min) + 60);
             }
             else if (min == r)
             {
-                h = 60 * (b - g) / (max - min) + 180;
+                h = (ushort)(60 * (b - g) / (max - min) + 180);
             }
             else if (min == g)
             {
-                h = 60 * (r - b) / (max - min) + 300;
+                h = (ushort)(60 * (r - b) / (max - min) + 300);
             }
 
-            s = max - min;
+            s = (ushort)(max - min);
 
             v = max;
         }
@@ -294,12 +238,12 @@ namespace ImageSharpWpf.Utils
         /// <param name="r"></param>
         /// <param name="g"></param>
         /// <param name="b"></param>
-        private static void GetRGB(double h, double s, double v,
+        private static void GetRGB(ushort h, ushort s, ushort v,
             out double r, out double g, out double b)
         {
             var c = s / 255.0;
             var _v = v / 255.0;
-            var _h = h / 60;
+            var _h = h / 60.0;
             var _x = c * (1 - Math.Abs(_h % 2 - 1));
 
             r = g = b = _v - c;

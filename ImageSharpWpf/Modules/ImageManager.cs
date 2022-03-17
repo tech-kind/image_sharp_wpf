@@ -86,11 +86,11 @@ namespace ImageSharpWpf.Modules
             _stopWatch.Restart();
 
             var gray = ImageLib.ConvertGray(_srcImage);
-            ImageLib.BinaryThreshold(ref gray, 127);
+            var th = ImageLib.BinaryThreshold(gray, 127);
 
             _stopWatch.Stop();
             PublishElapsedTime();
-            return PublishBitmapSource(OutputType.Dst, gray);
+            return PublishBitmapSource(OutputType.Dst, th);
         }
 
         private ValueTask OtsuThreshold(string message, CancellationToken token)
@@ -100,11 +100,11 @@ namespace ImageSharpWpf.Modules
             _stopWatch.Restart();
 
             var gray = ImageLib.ConvertGray(_srcImage);
-            ImageLib.OtsuThreshold(ref gray);
+            var th = ImageLib.OtsuThreshold(gray);
 
             _stopWatch.Stop();
             PublishElapsedTime();
-            return PublishBitmapSource(OutputType.Dst, gray);
+            return PublishBitmapSource(OutputType.Dst, th);
         }
 
         private ValueTask RGBToBGR(string message, CancellationToken token)
@@ -126,8 +126,8 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
             var hsv = ImageLib.ConvertFromRGBToHSV(_srcImage);
-            ImageLib.InverseHue(ref hsv);
-            var rgb = ImageLib.ConvertFromHSVToRGB(hsv);
+            var inverse = ImageLib.InverseHue(hsv);
+            var rgb = ImageLib.ConvertFromHSVToRGB(inverse);
 
             _stopWatch.Stop();
             PublishElapsedTime();
