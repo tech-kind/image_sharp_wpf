@@ -14,7 +14,6 @@ namespace ImageSharpWpf.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private readonly IImageManager _imageManager;
         private readonly IAsyncSubscriber<string, BitmapSource> _subscriber;
         private readonly IAsyncSubscriber<string, string> _strSubscriber;
 
@@ -44,8 +43,6 @@ namespace ImageSharpWpf.ViewModels
 
         public MainWindowViewModel(IServiceProvider serviceProvider)
         {
-            _imageManager = serviceProvider.GetRequiredService<IImageManager>();
-
             _subscriber = serviceProvider.GetRequiredService<IAsyncSubscriber<string, BitmapSource>>();
             _strSubscriber = serviceProvider.GetRequiredService<IAsyncSubscriber<string, string>>();
             _subscriber.Subscribe(IMAGE_MANAGER_SRC_IMAGE, SetSrcImage);

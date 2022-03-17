@@ -22,6 +22,12 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand GrayScaleCommand { get; private set; }
 
+        public DelegateCommand RGBToBGRCommand { get; private set; }
+
+        public DelegateCommand OtsuThresholdCommand { get; private set; }
+
+        public DelegateCommand HSVCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -29,6 +35,9 @@ namespace ImageSharpWpf.ViewModels
             FileSelectCommand = new DelegateCommand(FileSelection);
             ThresholdCommand = new DelegateCommand(Threshold);
             GrayScaleCommand = new DelegateCommand(ConvertGrayscale);
+            RGBToBGRCommand = new DelegateCommand(RGBToBGR);
+            OtsuThresholdCommand = new DelegateCommand(OtsuThreshold);
+            HSVCommand = new DelegateCommand(HSV);
         }
 
         private void FileSelection()
@@ -50,6 +59,21 @@ namespace ImageSharpWpf.ViewModels
         private void Threshold()
         {
             _publisher.Publish(IMAGE_MANAGER_THRESHOLD, "");
+        }
+
+        private void OtsuThreshold()
+        {
+            _publisher.Publish(IMAGE_MANAGER_OTSU_THRESHOLD, "");
+        }
+
+        private void RGBToBGR()
+        {
+            _publisher.Publish(IMAGE_MANAGER_RGB_TO_BGR, "");
+        }
+
+        private void HSV()
+        {
+            _publisher.Publish(IMAGE_MANAGER_HSV, "");
         }
     }
 }

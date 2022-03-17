@@ -13,6 +13,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Advanced;
 using static ImageSharpWpf.Utils.TopicName;
+using Microsoft.Extensions.Hosting;
+using ImageSharpWpf.Utils;
 
 namespace ImageSharpWpf.Modules
 {
@@ -21,7 +23,7 @@ namespace ImageSharpWpf.Modules
 
     }
 
-    public class ImageManager : IImageManager
+    public class ImageManager : BackgroundService, IImageManager
     {
         private Stopwatch _stopWatch = new Stopwatch();
         private enum OutputType
@@ -42,10 +44,21 @@ namespace ImageSharpWpf.Modules
             _bitmapPublisher = bmpPub;
             _strPublisher = strPub;
             _subscriber = sub;
+        }
 
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
             _subscriber.Subscribe(IMAGE_MANAGER_SET_IMAGE, SetImage);
             _subscriber.Subscribe(IMAGE_MANAGER_THRESHOLD, Threshold);
             _subscriber.Subscribe(IMAGE_MANAGER_GRAY_SCALE, GrayScaleImage);
+            _subscriber.Subscribe(IMAGE_MANAGER_RGB_TO_BGR, RGBToBGR);
+            _subscriber.Subscribe(IMAGE_MANAGER_OTSU_THRESHOLD, OtsuThreshold);
+            _subscriber.Subscribe(IMAGE_MANAGER_HSV, HSV);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await Task.Delay(10, stoppingToken);
+            }
         }
 
         private ValueTask SetImage(string path, CancellationToken token)
@@ -59,10 +72,8 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
+            var gray = ImageLib.ConvertGray(_srcImage);
 
-            var gray = ConvertGray(_srcImage);
-
-            // var gray = _srcImage.Clone(x => x.Grayscale());
             _stopWatch.Stop();
             PublishElapsedTime();
             return PublishBitmapSource(OutputType.Dst, gray);
@@ -74,41 +85,59 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
 
-            var gray = ConvertGray(_srcImage);
-            int height = _srcImage.Height;
-            gray.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<L8> pixelRow = accessor.GetRowSpan(y);
+            var gray = ImageLib.ConvertGray(_srcImage);
+            ImageLib.BinaryThreshold(ref gray, 127);
 
-                    // pixelRow.Length has the same value as accessor.Width,
-                    // but using pixelRow.Length allows the JIT to optimize away bounds checks:
-                    for (int x = 0; x < pixelRow.Length; x++)
-                    {
-                        // Get a reference to the pixel at position x
-                        ref L8 pixel = ref pixelRow[x];
-                        if (pixel.PackedValue > 128)
-                        { 
-                            pixel.PackedValue = 255;
-                        }
-                        else
-                        {
-                            pixel.PackedValue = 0;
-                        }
-                    }
-                }
-            });
-
-            // var gray = _srcImage.Clone(x => x.Grayscale());
             _stopWatch.Stop();
             PublishElapsedTime();
             return PublishBitmapSource(OutputType.Dst, gray);
         }
 
+        private ValueTask OtsuThreshold(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+
+            var gray = ImageLib.ConvertGray(_srcImage);
+            ImageLib.OtsuThreshold(ref gray);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+            return PublishBitmapSource(OutputType.Dst, gray);
+        }
+
+        private ValueTask RGBToBGR(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var dst = ImageLib.ConvertFromRGBToBGR(_srcImage);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, dst);
+        }
+
+        private ValueTask HSV(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var hsv = ImageLib.ConvertFromRGBToHSV(_srcImage);
+            ImageLib.InverseHue(ref hsv);
+            var rgb = ImageLib.ConvertFromHSVToRGB(hsv);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, rgb);
+        }
+
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)
         {
-            var bmp = ConvertFromImageToBitmapSource(image);
+            var bmp = ImageLib.ConvertFromImageToBitmapSource(image);
 
             if (bmp == null) return ValueTask.FromException(new Exception());
 
@@ -124,7 +153,7 @@ namespace ImageSharpWpf.Modules
 
         private ValueTask PublishBitmapSource(OutputType type, Image<L8> image)
         {
-            var bmp = ConvertFromImageToBitmapSource(image);
+            var bmp = ImageLib.ConvertFromImageToBitmapSource(image);
 
             if (bmp == null) return ValueTask.FromException(new Exception());
 
@@ -143,50 +172,6 @@ namespace ImageSharpWpf.Modules
             var str = $"{_stopWatch.ElapsedMilliseconds}ms";
             _strPublisher.Publish(IMAGE_MANAGER_ELAPSED_TIME, str);
         }
-
-        private BitmapSource? ConvertFromImageToBitmapSource(Image<Rgb24> image)
-        {
-            byte[] pixelBytes = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgb24>()];
-            image.CopyPixelDataTo(pixelBytes);
-
-            var bmp = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Rgb24, null, pixelBytes, image.Width * 3);
-
-            return bmp;
-        }
-
-        private BitmapSource? ConvertFromImageToBitmapSource(Image<L8> image)
-        {
-            byte[] pixelBytes = new byte[image.Width * image.Height * Unsafe.SizeOf<L8>()];
-            image.CopyPixelDataTo(pixelBytes);
-
-            var bmp = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Gray8, null, pixelBytes, image.Width);
-
-            return bmp;
-        }
-
-        private Image<L8> ConvertGray(Image<Rgb24> color)
-        {
-            var gray = new Image<L8>(_srcImage.Width, _srcImage.Height);
-            int height = _srcImage.Height;
-            _srcImage.ProcessPixelRows(gray, (srcAccessor, grayAccessor) =>
-            {
-                for (int i = 0; i < height; i++)
-                {
-                    Span<Rgb24> srcPixelRow = srcAccessor.GetRowSpan(i);
-                    Span<L8> grayPixelRow = grayAccessor.GetRowSpan(i);
-
-                    for (int x = 0; x < srcPixelRow.Length; x++)
-                    {
-                        var gray_value = srcPixelRow[x].R * 0.2126 + srcPixelRow[x].G * 0.7152
-                            + srcPixelRow[x].B * 0.0722;
-                        if (gray_value > byte.MaxValue) gray_value = byte.MaxValue;
-                        if (gray_value < byte.MinValue) gray_value = byte.MinValue;
-                        grayPixelRow[x].PackedValue = (byte)gray_value;
-                    }
-                }
-            });
-
-            return gray;
-        }
+        
     }
 }

@@ -12,8 +12,11 @@
             Header="画像選択"
             Icon="{x:Static wpfuiCommon:Icon.Open20}" />
         <MenuItem Header="変換">
+            <MenuItem Command="{Binding RGBToBGRCommand}" Header="チャンネル変換" />
             <MenuItem Command="{Binding GrayScaleCommand}" Header="グレースケール" />
             <MenuItem Command="{Binding ThresholdCommand}" Header="二値化" />
+            <MenuItem Command="{Binding OtsuThresholdCommand}" Header="大津の二値化" />
+            <MenuItem Command="{Binding HSVCommand}" Header="HSV変換" />
         </MenuItem>
     </Menu>
 </UserControl>

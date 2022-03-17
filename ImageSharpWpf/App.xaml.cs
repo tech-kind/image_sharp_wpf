@@ -11,6 +11,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace ImageSharpWpf
 {
@@ -40,10 +41,11 @@ namespace ImageSharpWpf
 
             // image_manager
             {
-                // var pathPublisher = provider.GetRequiredService<IRequestHandler<string, string>>();
-                // var pathSubscriber = provider.GetRequiredService<IRequestHandler<string, string>>();
-                // var path_manager = new PathManager.PathManager(pathPublisher, pathSubscriber);
-                // path_manager.StartAsync(new System.Threading.CancellationToken());
+                var bmpPublisher = provider.GetRequiredService<IAsyncPublisher<string, BitmapSource>>();
+                var strPublisher = provider.GetRequiredService<IAsyncPublisher<string, string>>();
+                var subscriber = provider.GetRequiredService<IAsyncSubscriber<string, string>>();
+                var image_manager = new ImageManager(bmpPublisher, strPublisher, subscriber);
+                image_manager.StartAsync(new System.Threading.CancellationToken());
             }
 
             containerRegistry.Register<IServiceProvider>(() => provider);
