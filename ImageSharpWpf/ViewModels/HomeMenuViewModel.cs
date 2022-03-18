@@ -28,6 +28,8 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand HSVCommand { get; private set; }
 
+        public DelegateCommand SubtractionCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -38,6 +40,7 @@ namespace ImageSharpWpf.ViewModels
             RGBToBGRCommand = new DelegateCommand(RGBToBGR);
             OtsuThresholdCommand = new DelegateCommand(OtsuThreshold);
             HSVCommand = new DelegateCommand(HSV);
+            SubtractionCommand = new DelegateCommand(Subtraction);
         }
 
         private void FileSelection()
@@ -74,6 +77,11 @@ namespace ImageSharpWpf.ViewModels
         private void HSV()
         {
             _publisher.Publish(IMAGE_MANAGER_HSV, "");
+        }
+
+        private void Subtraction()
+        {
+            _publisher.Publish(IMAGE_MANAGER_SUBTRACTION, "");
         }
     }
 }

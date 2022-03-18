@@ -25,5 +25,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_ELAPSED_TIME = "/image_manager/elapsed_time";
 
         public const string IMAGE_MANAGER_HSV = "/image_manager/hsv";
+
+        public const string IMAGE_MANAGER_SUBTRACTION = "/image_manager/color_subtraction";
     }
 }

@@ -51,6 +51,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_RGB_TO_BGR, RGBToBGR);
             _subscriber.Subscribe(IMAGE_MANAGER_OTSU_THRESHOLD, OtsuThreshold);
             _subscriber.Subscribe(IMAGE_MANAGER_HSV, HSV);
+            _subscriber.Subscribe(IMAGE_MANAGER_SUBTRACTION, Subtraction);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -119,14 +120,27 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-            var hsv = ImageOperator.ConvertFromRGBToHSV(_srcImage);
+            var hsv = ImageOperator.RGB2HSV(_srcImage);
             var inverse = ImageOperator.InverseHue(hsv);
-            var rgb = ImageOperator.ConvertFromHSVToRGB(inverse);
+            var rgb = ImageOperator.HSV2RGB(inverse);
 
             _stopWatch.Stop();
             PublishElapsedTime();
 
             return PublishBitmapSource(OutputType.Dst, rgb);
+        }
+
+        private ValueTask Subtraction(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var dev = ImageOperator.ColorSubtraction(_srcImage, 4);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, dev);
         }
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)

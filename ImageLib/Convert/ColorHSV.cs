@@ -10,7 +10,7 @@ namespace ImageLib
 {
     public static partial class ImageOperator
     {
-        public static Image<Rgb48> ConvertFromRGBToHSV(Image<Rgb24> image)
+        public static Image<Rgb48> RGB2HSV(Image<Rgb24> image)
         {
             Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
             Rgb48[] hsvBytes = new Rgb48[image.Width * image.Height];
@@ -28,7 +28,7 @@ namespace ImageLib
             return Image.LoadPixelData(hsvBytes, image.Width, image.Height);
         }
 
-        public static Image<Rgb24> ConvertFromHSVToRGB(Image<Rgb48> image)
+        public static Image<Rgb24> HSV2RGB(Image<Rgb48> image)
         {
             Rgb48[] hsvBytes = new Rgb48[image.Width * image.Height];
             Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];

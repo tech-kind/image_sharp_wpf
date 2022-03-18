@@ -17,6 +17,7 @@
             <MenuItem Command="{Binding ThresholdCommand}" Header="二値化" />
             <MenuItem Command="{Binding OtsuThresholdCommand}" Header="大津の二値化" />
             <MenuItem Command="{Binding HSVCommand}" Header="HSV変換" />
+            <MenuItem Command="{Binding SubtractionCommand}" Header="減色処理" />
         </MenuItem>
     </Menu>
 </UserControl>
