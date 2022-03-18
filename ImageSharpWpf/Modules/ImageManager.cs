@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MessagePipe;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Advanced;
 using static ImageSharpWpf.Utils.TopicName;
 using Microsoft.Extensions.Hosting;
-using ImageSharpWpf.Utils;
+using ImageLib;
 
 namespace ImageSharpWpf.Modules
 {
@@ -72,7 +69,7 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-            var gray = ImageLib.ConvertGray(_srcImage);
+            var gray = ImageOperator.Grayscale(_srcImage);
 
             _stopWatch.Stop();
             PublishElapsedTime();
@@ -85,8 +82,7 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
 
-            var gray = ImageLib.ConvertGray(_srcImage);
-            var th = ImageLib.BinaryThreshold(gray, 127);
+            var th = ImageOperator.BinaryThreshold(_srcImage, 127);
 
             _stopWatch.Stop();
             PublishElapsedTime();
@@ -98,9 +94,7 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-
-            var gray = ImageLib.ConvertGray(_srcImage);
-            var th = ImageLib.OtsuThreshold(gray);
+            var th = ImageOperator.OtsuThreshold(_srcImage);
 
             _stopWatch.Stop();
             PublishElapsedTime();
@@ -112,7 +106,7 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-            var dst = ImageLib.ConvertFromRGBToBGR(_srcImage);
+            var dst = ImageOperator.RGB2BGR(_srcImage);
 
             _stopWatch.Stop();
             PublishElapsedTime();
@@ -125,9 +119,9 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-            var hsv = ImageLib.ConvertFromRGBToHSV(_srcImage);
-            var inverse = ImageLib.InverseHue(hsv);
-            var rgb = ImageLib.ConvertFromHSVToRGB(inverse);
+            var hsv = ImageOperator.ConvertFromRGBToHSV(_srcImage);
+            var inverse = ImageOperator.InverseHue(hsv);
+            var rgb = ImageOperator.ConvertFromHSVToRGB(inverse);
 
             _stopWatch.Stop();
             PublishElapsedTime();
@@ -137,7 +131,7 @@ namespace ImageSharpWpf.Modules
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)
         {
-            var bmp = ImageLib.ConvertFromImageToBitmapSource(image);
+            var bmp = ConvertFromImageToBitmapSource(image);
 
             if (bmp == null) return ValueTask.FromException(new Exception());
 
@@ -153,7 +147,7 @@ namespace ImageSharpWpf.Modules
 
         private ValueTask PublishBitmapSource(OutputType type, Image<L8> image)
         {
-            var bmp = ImageLib.ConvertFromImageToBitmapSource(image);
+            var bmp = ConvertFromImageToBitmapSource(image);
 
             if (bmp == null) return ValueTask.FromException(new Exception());
 
@@ -172,6 +166,26 @@ namespace ImageSharpWpf.Modules
             var str = $"{_stopWatch.ElapsedMilliseconds}ms";
             _strPublisher.Publish(IMAGE_MANAGER_ELAPSED_TIME, str);
         }
-        
+
+        private BitmapSource? ConvertFromImageToBitmapSource(Image<Rgb24> image)
+        {
+            byte[] pixelBytes = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgb24>()];
+            image.CopyPixelDataTo(pixelBytes);
+
+            var bmp = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Rgb24, null, pixelBytes, image.Width * 3);
+
+            return bmp;
+        }
+
+        private BitmapSource? ConvertFromImageToBitmapSource(Image<L8> image)
+        {
+            byte[] pixelBytes = new byte[image.Width * image.Height * Unsafe.SizeOf<L8>()];
+            image.CopyPixelDataTo(pixelBytes);
+
+            var bmp = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Gray8, null, pixelBytes, image.Width);
+
+            return bmp;
+        }
+
     }
 }
