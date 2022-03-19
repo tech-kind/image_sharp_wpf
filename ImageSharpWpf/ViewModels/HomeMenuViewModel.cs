@@ -30,6 +30,8 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand SubtractionCommand { get; private set; }
 
+        public DelegateCommand AveragePoolingCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -41,6 +43,7 @@ namespace ImageSharpWpf.ViewModels
             OtsuThresholdCommand = new DelegateCommand(OtsuThreshold);
             HSVCommand = new DelegateCommand(HSV);
             SubtractionCommand = new DelegateCommand(Subtraction);
+            AveragePoolingCommand = new DelegateCommand(AveragePooling);
         }
 
         private void FileSelection()
@@ -82,6 +85,11 @@ namespace ImageSharpWpf.ViewModels
         private void Subtraction()
         {
             _publisher.Publish(IMAGE_MANAGER_SUBTRACTION, "");
+        }
+
+        private void AveragePooling()
+        {
+            _publisher.Publish(IMAGE_MANAGER_AVERAGE_POOLING, "");
         }
     }
 }

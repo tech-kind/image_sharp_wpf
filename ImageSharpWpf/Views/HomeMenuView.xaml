@@ -14,10 +14,15 @@
         <MenuItem Header="変換">
             <MenuItem Command="{Binding RGBToBGRCommand}" Header="チャンネル変換" />
             <MenuItem Command="{Binding GrayScaleCommand}" Header="グレースケール" />
+            <MenuItem Command="{Binding HSVCommand}" Header="HSV変換" />
+        </MenuItem>
+        <MenuItem Header="減色">
             <MenuItem Command="{Binding ThresholdCommand}" Header="二値化" />
             <MenuItem Command="{Binding OtsuThresholdCommand}" Header="大津の二値化" />
-            <MenuItem Command="{Binding HSVCommand}" Header="HSV変換" />
             <MenuItem Command="{Binding SubtractionCommand}" Header="減色処理" />
+        </MenuItem>
+        <MenuItem Header="フィルタ">
+            <MenuItem Command="{Binding AveragePoolingCommand}" Header="平均値プーリング" />
         </MenuItem>
     </Menu>
 </UserControl>
