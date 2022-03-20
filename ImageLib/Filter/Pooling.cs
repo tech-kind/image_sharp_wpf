@@ -26,13 +26,21 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y) =>
+            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y, loop) =>
             {
                 var currentRow = y * stride.h;
+                if ((currentRow + kernel.h) > paddingSize.h)
+                {
+                    return;
+                }
                 int row = paddingSize.w / stride.w;
                 for (int x = 0; x < row; x++)
                 {
                     var currentColumn = x * stride.w;
+                    if ((currentColumn + kernel.w) > paddingSize.w)
+                    {
+                        return;
+                    }
                     double vr = 0;
                     double vg = 0;
                     double vb = 0;
@@ -51,10 +59,10 @@ namespace ImageLib
                     vg /= size;
                     vb /= size;
 
-                    int inputRow = row * y + x;
+                    int inputRow = newSize.w * y + x;
                     aveBytes[inputRow].R = (byte)vr;
                     aveBytes[inputRow].G = (byte)vg;
-                    aveBytes[inputRow].B = (byte)vb;
+                    aveBytes[inputRow].B = (byte)vb;                    
                 }
             });
 
