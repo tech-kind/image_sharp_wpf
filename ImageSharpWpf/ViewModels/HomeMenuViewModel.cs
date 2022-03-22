@@ -32,6 +32,8 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand AveragePoolingCommand { get; private set; }
 
+        public DelegateCommand MaxPoolingCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -44,6 +46,7 @@ namespace ImageSharpWpf.ViewModels
             HSVCommand = new DelegateCommand(HSV);
             SubtractionCommand = new DelegateCommand(Subtraction);
             AveragePoolingCommand = new DelegateCommand(AveragePooling);
+            MaxPoolingCommand = new DelegateCommand(MaxPooling);
         }
 
         private void FileSelection()
@@ -90,6 +93,11 @@ namespace ImageSharpWpf.ViewModels
         private void AveragePooling()
         {
             _publisher.Publish(IMAGE_MANAGER_AVERAGE_POOLING, "");
+        }
+
+        private void MaxPooling()
+        {
+            _publisher.Publish(IMAGE_MANAGER_MAX_POOLING, "");
         }
     }
 }

@@ -29,5 +29,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_SUBTRACTION = "/image_manager/color_subtraction";
 
         public const string IMAGE_MANAGER_AVERAGE_POOLING = "/image_manager/average_pooling";
+
+        public const string IMAGE_MANAGER_MAX_POOLING = "/image_manager/max_pooling";
     }
 }

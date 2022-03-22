@@ -53,6 +53,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_HSV, HSV);
             _subscriber.Subscribe(IMAGE_MANAGER_SUBTRACTION, Subtraction);
             _subscriber.Subscribe(IMAGE_MANAGER_AVERAGE_POOLING, AveragePooling);
+            _subscriber.Subscribe(IMAGE_MANAGER_MAX_POOLING, MaxPooling);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -150,6 +151,19 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
             var ave = ImageOperator.AveragePooling(_srcImage, (8, 8), (0, 0), (8, 8));
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, ave);
+        }
+
+        private ValueTask MaxPooling(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var ave = ImageOperator.MaxPooling(_srcImage, (8, 8), (0, 0), (8, 8));
 
             _stopWatch.Stop();
             PublishElapsedTime();

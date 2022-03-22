@@ -23,6 +23,7 @@
         </MenuItem>
         <MenuItem Header="フィルタ">
             <MenuItem Command="{Binding AveragePoolingCommand}" Header="平均値プーリング" />
+            <MenuItem Command="{Binding MaxPoolingCommand}" Header="最大値プーリング" />
         </MenuItem>
     </Menu>
 </UserControl>
