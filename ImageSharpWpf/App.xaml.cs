@@ -35,8 +35,6 @@ namespace ImageSharpWpf
             services.AddTransient(typeof(IAsyncPublisher<,>), typeof(AsyncMessageBroker<,>));
             services.AddTransient(typeof(IAsyncSubscriber<,>), typeof(AsyncMessageBroker<,>));
 
-            services.AddSingleton<IImageManager, ImageManager>();
-
             ServiceProvider provider = services.BuildServiceProvider();
 
             // image_manager

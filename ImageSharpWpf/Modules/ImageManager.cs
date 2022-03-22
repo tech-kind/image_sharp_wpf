@@ -15,12 +15,7 @@ using ImageLib;
 
 namespace ImageSharpWpf.Modules
 {
-    public interface IImageManager
-    {
-
-    }
-
-    public class ImageManager : BackgroundService, IImageManager
+    public class ImageManager : BackgroundService
     {
         private Stopwatch _stopWatch = new Stopwatch();
         private enum OutputType
