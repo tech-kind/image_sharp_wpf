@@ -34,6 +34,8 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand MaxPoolingCommand { get; private set; }
 
+        public DelegateCommand GaussianFilterCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -47,6 +49,7 @@ namespace ImageSharpWpf.ViewModels
             SubtractionCommand = new DelegateCommand(Subtraction);
             AveragePoolingCommand = new DelegateCommand(AveragePooling);
             MaxPoolingCommand = new DelegateCommand(MaxPooling);
+            GaussianFilterCommand = new DelegateCommand(GaussianFilter);
         }
 
         private void FileSelection()
@@ -98,6 +101,11 @@ namespace ImageSharpWpf.ViewModels
         private void MaxPooling()
         {
             _publisher.Publish(IMAGE_MANAGER_MAX_POOLING, "");
+        }
+
+        private void GaussianFilter()
+        {
+            _publisher.Publish(IMAGE_MANAGER_GAUSSIAN_FILTER, "");
         }
     }
 }

@@ -31,5 +31,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_AVERAGE_POOLING = "/image_manager/average_pooling";
 
         public const string IMAGE_MANAGER_MAX_POOLING = "/image_manager/max_pooling";
+
+        public const string IMAGE_MANAGER_GAUSSIAN_FILTER = "/image_manager/gaussian_filter";
     }
 }

@@ -26,7 +26,7 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y, loop) =>
+            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y) =>
             {
                 var currentRow = y * stride.h;
                 if ((currentRow + kernel.h) > paddingSize.h)
@@ -85,7 +85,7 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y, loop) =>
+            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y) =>
             {
                 var currentRow = y * stride.h;
                 if ((currentRow + kernel.h) > paddingSize.h)

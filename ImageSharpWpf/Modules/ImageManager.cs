@@ -49,6 +49,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_SUBTRACTION, Subtraction);
             _subscriber.Subscribe(IMAGE_MANAGER_AVERAGE_POOLING, AveragePooling);
             _subscriber.Subscribe(IMAGE_MANAGER_MAX_POOLING, MaxPooling);
+            _subscriber.Subscribe(IMAGE_MANAGER_GAUSSIAN_FILTER, GaussianFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -164,6 +165,19 @@ namespace ImageSharpWpf.Modules
             PublishElapsedTime();
 
             return PublishBitmapSource(OutputType.Dst, ave);
+        }
+
+        private ValueTask GaussianFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var gaussian = ImageOperator.GaussianFilter(_srcImage, (3, 3));
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, gaussian);
         }
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)
