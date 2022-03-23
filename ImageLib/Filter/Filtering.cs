@@ -27,37 +27,35 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h, _parallelOptions, (y) =>
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                if ((y + kernel.h) > paddingSize.h)
+                int y = i / paddingSize.h;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
                 {
                     return;
                 }
-                for (int x = 0; x < paddingSize.w; x++)
+
+                double vr = 0;
+                double vg = 0;
+                double vb = 0;
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    if ((x + kernel.w) > paddingSize.w)
-                    {
-                        return;
-                    }
-                    double vr = 0;
-                    double vg = 0;
-                    double vb = 0;
-
-                    for (int k = 0; k < kernel.h * kernel.w; k++)
-                    {
-                        int dy = k / kernel.h;
-                        int dx = k % kernel.w;
-                        int currentByte = (y + dy) * paddingSize.w + (x + dx);
-                        vr += paddingBytes[currentByte].R * kernelBytes[k];
-                        vg += paddingBytes[currentByte].G * kernelBytes[k];
-                        vb += paddingBytes[currentByte].B * kernelBytes[k];
-                    }
-
-                    int inputRow = image.Width * y + x;
-                    gaussianBytes[inputRow].R = (byte)vr;
-                    gaussianBytes[inputRow].G = (byte)vg;
-                    gaussianBytes[inputRow].B = (byte)vb;
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    vr += paddingBytes[currentByte].R * kernelBytes[k];
+                    vg += paddingBytes[currentByte].G * kernelBytes[k];
+                    vb += paddingBytes[currentByte].B * kernelBytes[k];
                 }
+
+                int inputRow = image.Width * y + x;
+                gaussianBytes[inputRow].R = (byte)vr;
+                gaussianBytes[inputRow].G = (byte)vg;
+                gaussianBytes[inputRow].B = (byte)vb;
             });
 
             return Image.LoadPixelData(gaussianBytes, image.Width, image.Height);

@@ -26,45 +26,47 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y) =>
+            int loopH = paddingSize.h / stride.h;
+            int loopW = paddingSize.w / stride.w;
+
+            Parallel.For(0, loopH * loopW, _parallelOptions, (i) =>
             {
+                int y = i / loopH;
+                int x = i % loopW;
+
                 var currentRow = y * stride.h;
                 if ((currentRow + kernel.h) > paddingSize.h)
                 {
                     return;
                 }
-                int row = paddingSize.w / stride.w;
-                for (int x = 0; x < row; x++)
+                var currentColumn = x * stride.w;
+                if ((currentColumn + kernel.w) > paddingSize.w)
                 {
-                    var currentColumn = x * stride.w;
-                    if ((currentColumn + kernel.w) > paddingSize.w)
-                    {
-                        return;
-                    }
-                    double vr = 0;
-                    double vg = 0;
-                    double vb = 0;
-
-                    for (int k = 0; k < kernel.w * kernel.h; k++)
-                    {
-                        int dy = k / kernel.h;
-                        int dx = k % kernel.w;
-                        int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
-                        vr += paddingBytes[currentByte].R;
-                        vg += paddingBytes[currentByte].G;
-                        vb += paddingBytes[currentByte].B;
-                    }
-
-                    int size = kernel.h * kernel.w;
-                    vr /= size;
-                    vg /= size;
-                    vb /= size;
-
-                    int inputRow = newSize.w * y + x;
-                    aveBytes[inputRow].R = (byte)vr;
-                    aveBytes[inputRow].G = (byte)vg;
-                    aveBytes[inputRow].B = (byte)vb;                    
+                    return;
                 }
+                double vr = 0;
+                double vg = 0;
+                double vb = 0;
+
+                for (int k = 0; k < kernel.w * kernel.h; k++)
+                {
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
+                    vr += paddingBytes[currentByte].R;
+                    vg += paddingBytes[currentByte].G;
+                    vb += paddingBytes[currentByte].B;
+                }
+
+                int size = kernel.h * kernel.w;
+                vr /= size;
+                vg /= size;
+                vb /= size;
+
+                int inputRow = newSize.w * y + x;
+                aveBytes[inputRow].R = (byte)vr;
+                aveBytes[inputRow].G = (byte)vg;
+                aveBytes[inputRow].B = (byte)vb;
             });
 
             return Image.LoadPixelData(aveBytes, newSize.w, newSize.h);
@@ -86,40 +88,42 @@ namespace ImageLib
                 w = (image.Width + padding.w * 2)
             };
 
-            Parallel.For(0, paddingSize.h / stride.h, _parallelOptions, (y) =>
+            int loopH = paddingSize.h / stride.h;
+            int loopW = paddingSize.w / stride.w;
+
+            Parallel.For(0, loopH * loopW, _parallelOptions, (i) =>
             {
+                int y = i / loopH;
+                int x = i % loopW;
+
                 var currentRow = y * stride.h;
                 if ((currentRow + kernel.h) > paddingSize.h)
                 {
                     return;
                 }
-                int row = paddingSize.w / stride.w;
-                for (int x = 0; x < row; x++)
+                var currentColumn = x * stride.w;
+                if ((currentColumn + kernel.w) > paddingSize.w)
                 {
-                    var currentColumn = x * stride.w;
-                    if ((currentColumn + kernel.w) > paddingSize.w)
-                    {
-                        return;
-                    }
-                    byte vr = 0;
-                    byte vg = 0;
-                    byte vb = 0;
-
-                    for (int k = 0; k < kernel.w * kernel.h; k++)
-                    {
-                        int dy = k / kernel.h;
-                        int dx = k % kernel.w;
-                        int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
-                        vr = Math.Max(paddingBytes[currentByte].R, vr);
-                        vg = Math.Max(paddingBytes[currentByte].G, vg);
-                        vb = Math.Max(paddingBytes[currentByte].B, vb);
-                    }
-
-                    int inputRow = newSize.w * y + x;
-                    maxBytes[inputRow].R = vr;
-                    maxBytes[inputRow].G = vg;
-                    maxBytes[inputRow].B = vb;
+                    return;
                 }
+                byte vr = 0;
+                byte vg = 0;
+                byte vb = 0;
+
+                for (int k = 0; k < kernel.w * kernel.h; k++)
+                {
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
+                    vr = Math.Max(paddingBytes[currentByte].R, vr);
+                    vg = Math.Max(paddingBytes[currentByte].G, vg);
+                    vb = Math.Max(paddingBytes[currentByte].B, vb);
+                }
+
+                int inputRow = newSize.w * y + x;
+                maxBytes[inputRow].R = vr;
+                maxBytes[inputRow].G = vg;
+                maxBytes[inputRow].B = vb;
             });
 
             return Image.LoadPixelData(maxBytes, newSize.w, newSize.h);
