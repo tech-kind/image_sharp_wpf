@@ -42,16 +42,15 @@ namespace ImageLib
                     double vr = 0;
                     double vg = 0;
                     double vb = 0;
-                    for (int dy = 0; dy < kernel.h; dy++)
+
+                    for (int k = 0; k < kernel.h * kernel.w; k++)
                     {
-                        for (int dx = 0; dx < kernel.w; dx++)
-                        {
-                            int currentByte = (y + dy) * paddingSize.w + (x + dx);
-                            int currentKernelByte = dy * kernel.w + dx;
-                            vr += paddingBytes[currentByte].R * kernelBytes[currentKernelByte];
-                            vg += paddingBytes[currentByte].G * kernelBytes[currentKernelByte];
-                            vb += paddingBytes[currentByte].B * kernelBytes[currentKernelByte];
-                        }
+                        int dy = k / kernel.h;
+                        int dx = k % kernel.w;
+                        int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                        vr += paddingBytes[currentByte].R * kernelBytes[k];
+                        vg += paddingBytes[currentByte].G * kernelBytes[k];
+                        vb += paddingBytes[currentByte].B * kernelBytes[k];
                     }
 
                     int inputRow = image.Width * y + x;

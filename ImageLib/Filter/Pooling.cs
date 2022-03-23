@@ -44,16 +44,17 @@ namespace ImageLib
                     double vr = 0;
                     double vg = 0;
                     double vb = 0;
-                    for (int dy = 0; dy < kernel.h; dy++)
+
+                    for (int k = 0; k < kernel.w * kernel.h; k++)
                     {
-                        for (int dx = 0; dx < kernel.w; dx++)
-                        {
-                            int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
-                            vr += paddingBytes[currentByte].R;
-                            vg += paddingBytes[currentByte].G;
-                            vb += paddingBytes[currentByte].B;
-                        }
+                        int dy = k / kernel.h;
+                        int dx = k % kernel.w;
+                        int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
+                        vr += paddingBytes[currentByte].R;
+                        vg += paddingBytes[currentByte].G;
+                        vb += paddingBytes[currentByte].B;
                     }
+
                     int size = kernel.h * kernel.w;
                     vr /= size;
                     vg /= size;
@@ -103,15 +104,15 @@ namespace ImageLib
                     byte vr = 0;
                     byte vg = 0;
                     byte vb = 0;
-                    for (int dy = 0; dy < kernel.h; dy++)
+
+                    for (int k = 0; k < kernel.w * kernel.h; k++)
                     {
-                        for (int dx = 0; dx < kernel.w; dx++)
-                        {
-                            int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
-                            vr = Math.Max(paddingBytes[currentByte].R, vr);
-                            vg = Math.Max(paddingBytes[currentByte].G, vg);
-                            vb = Math.Max(paddingBytes[currentByte].B, vb);
-                        }
+                        int dy = k / kernel.h;
+                        int dx = k % kernel.w;
+                        int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
+                        vr = Math.Max(paddingBytes[currentByte].R, vr);
+                        vg = Math.Max(paddingBytes[currentByte].G, vg);
+                        vb = Math.Max(paddingBytes[currentByte].B, vb);
                     }
 
                     int inputRow = newSize.w * y + x;
