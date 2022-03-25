@@ -50,6 +50,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_AVERAGE_POOLING, AveragePooling);
             _subscriber.Subscribe(IMAGE_MANAGER_MAX_POOLING, MaxPooling);
             _subscriber.Subscribe(IMAGE_MANAGER_GAUSSIAN_FILTER, GaussianFilter);
+            _subscriber.Subscribe(IMAGE_MANAGER_MEDIAN_FILTER, MedianFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -178,6 +179,19 @@ namespace ImageSharpWpf.Modules
             PublishElapsedTime();
 
             return PublishBitmapSource(OutputType.Dst, gaussian);
+        }
+
+        private ValueTask MedianFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var median = ImageOperator.MedianFilter(_srcImage, (7, 7));
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, median);
         }
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)

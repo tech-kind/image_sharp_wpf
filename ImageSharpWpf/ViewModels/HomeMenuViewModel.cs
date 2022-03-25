@@ -36,6 +36,8 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand GaussianFilterCommand { get; private set; }
 
+        public DelegateCommand MedianFilterCommand { get; private set; }
+
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
@@ -50,6 +52,7 @@ namespace ImageSharpWpf.ViewModels
             AveragePoolingCommand = new DelegateCommand(AveragePooling);
             MaxPoolingCommand = new DelegateCommand(MaxPooling);
             GaussianFilterCommand = new DelegateCommand(GaussianFilter);
+            MedianFilterCommand = new DelegateCommand(MedianFilter);
         }
 
         private void FileSelection()
@@ -106,6 +109,11 @@ namespace ImageSharpWpf.ViewModels
         private void GaussianFilter()
         {
             _publisher.Publish(IMAGE_MANAGER_GAUSSIAN_FILTER, "");
+        }
+
+        private void MedianFilter()
+        {
+            _publisher.Publish(IMAGE_MANAGER_MEDIAN_FILTER, "");
         }
     }
 }
