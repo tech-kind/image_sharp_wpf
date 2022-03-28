@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:topic="clr-namespace:ImageSharpWpf.Utils"
     xmlns:wpfui="clr-namespace:WPFUI.Controls;assembly=WPFUI"
     xmlns:wpfuiCommon="clr-namespace:WPFUI.Common;assembly=WPFUI"
     prism:ViewModelLocator.AutoWireViewModel="True">
@@ -12,20 +13,50 @@
             Header="画像選択"
             Icon="{x:Static wpfuiCommon:Icon.Open20}" />
         <MenuItem Header="変換">
-            <MenuItem Command="{Binding RGBToBGRCommand}" Header="チャンネル変換" />
-            <MenuItem Command="{Binding GrayScaleCommand}" Header="グレースケール" />
-            <MenuItem Command="{Binding HSVCommand}" Header="HSV変換" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_RGB_TO_BGR}"
+                Header="チャンネル変換" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_GRAY_SCALE}"
+                Header="グレースケール" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_HSV}"
+                Header="HSV変換" />
         </MenuItem>
         <MenuItem Header="減色">
-            <MenuItem Command="{Binding ThresholdCommand}" Header="二値化" />
-            <MenuItem Command="{Binding OtsuThresholdCommand}" Header="大津の二値化" />
-            <MenuItem Command="{Binding SubtractionCommand}" Header="減色処理" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_THRESHOLD}"
+                Header="二値化" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_OTSU_THRESHOLD}"
+                Header="大津の二値化" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SUBTRACTION}"
+                Header="減色処理" />
         </MenuItem>
         <MenuItem Header="フィルタ">
-            <MenuItem Command="{Binding AveragePoolingCommand}" Header="平均値プーリング" />
-            <MenuItem Command="{Binding MaxPoolingCommand}" Header="最大値プーリング" />
-            <MenuItem Command="{Binding GaussianFilterCommand}" Header="ガウシアンフィルタ" />
-            <MenuItem Command="{Binding MedianFilterCommand}" Header="メディアンフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_AVERAGE_POOLING}"
+                Header="平均値プーリング" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MAX_POOLING}"
+                Header="最大値プーリング" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_GAUSSIAN_FILTER}"
+                Header="ガウシアンフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MEDIAN_FILTER}"
+                Header="メディアンフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>

@@ -18,41 +18,14 @@ namespace ImageSharpWpf.ViewModels
 
         public DelegateCommand FileSelectCommand { get; private set; }
 
-        public DelegateCommand ThresholdCommand { get; private set; }
-
-        public DelegateCommand GrayScaleCommand { get; private set; }
-
-        public DelegateCommand RGBToBGRCommand { get; private set; }
-
-        public DelegateCommand OtsuThresholdCommand { get; private set; }
-
-        public DelegateCommand HSVCommand { get; private set; }
-
-        public DelegateCommand SubtractionCommand { get; private set; }
-
-        public DelegateCommand AveragePoolingCommand { get; private set; }
-
-        public DelegateCommand MaxPoolingCommand { get; private set; }
-
-        public DelegateCommand GaussianFilterCommand { get; private set; }
-
-        public DelegateCommand MedianFilterCommand { get; private set; }
+        public DelegateCommand<string> ProcessingCommand { get; private set; }
 
         public HomeMenuViewModel(IServiceProvider serviceProvider)
         {
             _publisher = serviceProvider.GetRequiredService<IAsyncPublisher<string, string>>();
 
             FileSelectCommand = new DelegateCommand(FileSelection);
-            ThresholdCommand = new DelegateCommand(Threshold);
-            GrayScaleCommand = new DelegateCommand(ConvertGrayscale);
-            RGBToBGRCommand = new DelegateCommand(RGBToBGR);
-            OtsuThresholdCommand = new DelegateCommand(OtsuThreshold);
-            HSVCommand = new DelegateCommand(HSV);
-            SubtractionCommand = new DelegateCommand(Subtraction);
-            AveragePoolingCommand = new DelegateCommand(AveragePooling);
-            MaxPoolingCommand = new DelegateCommand(MaxPooling);
-            GaussianFilterCommand = new DelegateCommand(GaussianFilter);
-            MedianFilterCommand = new DelegateCommand(MedianFilter);
+            ProcessingCommand = new DelegateCommand<string>(Processing);
         }
 
         private void FileSelection()
@@ -66,54 +39,9 @@ namespace ImageSharpWpf.ViewModels
             }
         }
 
-        private void ConvertGrayscale()
+        private void Processing(string topic)
         {
-            _publisher.Publish(IMAGE_MANAGER_GRAY_SCALE, "");
-        }
-
-        private void Threshold()
-        {
-            _publisher.Publish(IMAGE_MANAGER_THRESHOLD, "");
-        }
-
-        private void OtsuThreshold()
-        {
-            _publisher.Publish(IMAGE_MANAGER_OTSU_THRESHOLD, "");
-        }
-
-        private void RGBToBGR()
-        {
-            _publisher.Publish(IMAGE_MANAGER_RGB_TO_BGR, "");
-        }
-
-        private void HSV()
-        {
-            _publisher.Publish(IMAGE_MANAGER_HSV, "");
-        }
-
-        private void Subtraction()
-        {
-            _publisher.Publish(IMAGE_MANAGER_SUBTRACTION, "");
-        }
-
-        private void AveragePooling()
-        {
-            _publisher.Publish(IMAGE_MANAGER_AVERAGE_POOLING, "");
-        }
-
-        private void MaxPooling()
-        {
-            _publisher.Publish(IMAGE_MANAGER_MAX_POOLING, "");
-        }
-
-        private void GaussianFilter()
-        {
-            _publisher.Publish(IMAGE_MANAGER_GAUSSIAN_FILTER, "");
-        }
-
-        private void MedianFilter()
-        {
-            _publisher.Publish(IMAGE_MANAGER_MEDIAN_FILTER, "");
+            _publisher.Publish(topic, "");
         }
     }
 }
