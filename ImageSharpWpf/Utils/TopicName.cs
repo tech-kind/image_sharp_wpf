@@ -35,5 +35,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_GAUSSIAN_FILTER = "/image_manager/gaussian_filter";
 
         public const string IMAGE_MANAGER_MEDIAN_FILTER = "/image_manager/median_filter";
+
+        public const string IMAGE_MANAGER_SMOOTH_FILTER = "/image_manager/smooth_filter";
     }
 }

@@ -114,6 +114,60 @@ namespace ImageLib
             return Image.LoadPixelData(medianBytes, image.Width, image.Height);
         }
 
+        public static Image<Rgb24> SmoothingImage(Image<Rgb24> image, (int w, int h) kernel)
+        {
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            Rgb24[] smoothBytes = new Rgb24[image.Width * image.Height];
+            image.CopyPixelDataTo(rgbBytes);
+
+            (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
+            Rgb24[] paddingBytes = GetPaddingImage(rgbBytes, (image.Width, image.Height), padding);
+
+            (int w, int h) paddingSize = new()
+            {
+                h = (image.Height + padding.h * 2),
+                w = (image.Width + padding.w * 2)
+            };
+
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
+            {
+                int y = i / paddingSize.h;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
+                {
+                    return;
+                }
+
+                double vr = 0;
+                double vg = 0;
+                double vb = 0;
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
+                {
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    vr += paddingBytes[currentByte].R;
+                    vg += paddingBytes[currentByte].G;
+                    vb += paddingBytes[currentByte].B;
+                }
+
+                int size = kernel.h * kernel.w;
+                vr /= size;
+                vg /= size;
+                vb /= size;
+
+                int inputRow = image.Width * y + x;
+                smoothBytes[inputRow].R = (byte)vr;
+                smoothBytes[inputRow].G = (byte)vg;
+                smoothBytes[inputRow].B = (byte)vb;
+            });
+
+            return Image.LoadPixelData(smoothBytes, image.Width, image.Height);
+        }
+
         private static double[] CreateKernelBytes((int w, int h) kernel, (int w, int h) padding, double sigma = 1.3)
         {
             double[] tmpBytes = new double[kernel.w * kernel.h];

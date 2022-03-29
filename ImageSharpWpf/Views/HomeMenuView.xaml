@@ -57,6 +57,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MEDIAN_FILTER}"
                 Header="メディアンフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SMOOTH_FILTER}"
+                Header="平滑化フィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
