@@ -53,6 +53,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_MEDIAN_FILTER, MedianFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_SMOOTH_FILTER, SmoothFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_MOTION_FILTER, MotionFilter);
+            _subscriber.Subscribe(IMAGE_MANAGER_MAXMIN_FILTER, MaxMinFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -215,6 +216,19 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
             var motion = ImageOperator.MotionFilter(_srcImage, (5, 5));
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, motion);
+        }
+
+        private ValueTask MaxMinFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var motion = ImageOperator.MaxMinFilter(_srcImage, (5, 5));
 
             _stopWatch.Stop();
             PublishElapsedTime();

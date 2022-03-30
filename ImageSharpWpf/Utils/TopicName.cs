@@ -39,5 +39,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_SMOOTH_FILTER = "/image_manager/smooth_filter";
 
         public const string IMAGE_MANAGER_MOTION_FILTER = "/image_manager/motion_filter";
+
+        public const string IMAGE_MANAGER_MAXMIN_FILTER = "/image_manager/maxmin_filter";
     }
 }

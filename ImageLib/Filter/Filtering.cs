@@ -219,6 +219,56 @@ namespace ImageLib
             return Image.LoadPixelData(motionBytes, image.Width, image.Height);
         }
 
+        public static Image<L8> MaxMinFilter(Image<Rgb24> image, (int w, int h) kernel)
+        {
+            var gray = Grayscale(image);
+            return MaxMinFilter(gray, kernel);
+        }
+
+        public static Image<L8> MaxMinFilter(Image<L8> image, (int w, int h) kernel)
+        {
+            L8[] grayBytes = new L8[image.Width * image.Height];
+            L8[] maxminBytes = new L8[image.Width * image.Height];
+            image.CopyPixelDataTo(grayBytes);
+
+            (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
+            L8[] paddingBytes = GetPaddingImage(grayBytes, (image.Width, image.Height), padding);
+
+            (int w, int h) paddingSize = new()
+            {
+                h = (image.Height + padding.h * 2),
+                w = (image.Width + padding.w * 2)
+            };
+
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
+            {
+                int y = i / paddingSize.h;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
+                {
+                    return;
+                }
+
+                byte[] tmpBytes = new byte[kernel.h * kernel.w];
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
+                {
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    tmpBytes[k] = paddingBytes[currentByte].PackedValue;
+                }
+                byte diff = (byte)(tmpBytes.Max() - tmpBytes.Min());
+
+                int inputRow = image.Width * y + x;
+                maxminBytes[inputRow].PackedValue = diff;
+            });
+
+            return Image.LoadPixelData(maxminBytes, image.Width, image.Height);
+        }
+
         private static double[] CreateGaussianKernel((int w, int h) kernel, (int w, int h) padding, double sigma = 1.3)
         {
             double[] tmpBytes = new double[kernel.w * kernel.h];

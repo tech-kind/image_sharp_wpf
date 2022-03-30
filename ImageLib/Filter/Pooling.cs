@@ -155,5 +155,20 @@ namespace ImageLib
 
             return paddingImg;
         }
+
+        private static L8[] GetPaddingImage(L8[] image, (int w, int h) imageSize, (int w, int h) padding)
+        {
+            L8[] paddingImg = new L8[(imageSize.w + padding.w * 2) * (imageSize.h + padding.h * 2)];
+
+            Parallel.For(0, imageSize.h, _parallelOptions, (h) =>
+            {
+                for (int w = 0; w < imageSize.w; w++)
+                {
+                    paddingImg[((imageSize.w + padding.w * 2) * (padding.h + h)) + (padding.w + w)].PackedValue = image[(imageSize.w * h) + w].PackedValue;
+                }
+            });
+
+            return paddingImg;
+        }
     }
 }

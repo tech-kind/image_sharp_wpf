@@ -65,6 +65,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MOTION_FILTER}"
                 Header="モーションフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MAXMIN_FILTER}"
+                Header="Max-Minフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
