@@ -29,7 +29,7 @@ namespace ImageLib
 
             Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                int y = i / paddingSize.h;
+                int y = i / paddingSize.w;
                 int x = i % paddingSize.w;
 
                 if (((y + kernel.h) > paddingSize.h) ||
@@ -44,7 +44,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (y + dy) * paddingSize.w + (x + dx);
                     vr += paddingBytes[currentByte].R * kernelBytes[k];
@@ -78,7 +78,7 @@ namespace ImageLib
 
             Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                int y = i / paddingSize.h;
+                int y = i / paddingSize.w;
                 int x = i % paddingSize.w;
 
                 if (((y + kernel.h) > paddingSize.h) ||
@@ -93,7 +93,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (y + dy) * paddingSize.w + (x + dx);
                     vrBytes[k] = paddingBytes[currentByte].R;
@@ -131,7 +131,7 @@ namespace ImageLib
 
             Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                int y = i / paddingSize.h;
+                int y = i / paddingSize.w;
                 int x = i % paddingSize.w;
 
                 if (((y + kernel.h) > paddingSize.h) ||
@@ -146,7 +146,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (y + dy) * paddingSize.w + (x + dx);
                     vr += paddingBytes[currentByte].R;
@@ -187,7 +187,7 @@ namespace ImageLib
 
             Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                int y = i / paddingSize.h;
+                int y = i / paddingSize.w;
                 int x = i % paddingSize.w;
 
                 if (((y + kernel.h) > paddingSize.h) ||
@@ -202,7 +202,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (y + dy) * paddingSize.w + (x + dx);
                     vr += paddingBytes[currentByte].R * kernelBytes[k];
@@ -242,7 +242,7 @@ namespace ImageLib
 
             Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
             {
-                int y = i / paddingSize.h;
+                int y = i / paddingSize.w;
                 int x = i % paddingSize.w;
 
                 if (((y + kernel.h) > paddingSize.h) ||
@@ -255,7 +255,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (y + dy) * paddingSize.w + (x + dx);
                     tmpBytes[k] = paddingBytes[currentByte].PackedValue;

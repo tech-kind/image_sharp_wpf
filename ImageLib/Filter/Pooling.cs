@@ -31,7 +31,7 @@ namespace ImageLib
 
             Parallel.For(0, loopH * loopW, _parallelOptions, (i) =>
             {
-                int y = i / loopH;
+                int y = i / loopW;
                 int x = i % loopW;
 
                 var currentRow = y * stride.h;
@@ -50,7 +50,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.w * kernel.h; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
                     vr += paddingBytes[currentByte].R;
@@ -93,7 +93,7 @@ namespace ImageLib
 
             Parallel.For(0, loopH * loopW, _parallelOptions, (i) =>
             {
-                int y = i / loopH;
+                int y = i / loopW;
                 int x = i % loopW;
 
                 var currentRow = y * stride.h;
@@ -112,7 +112,7 @@ namespace ImageLib
 
                 for (int k = 0; k < kernel.w * kernel.h; k++)
                 {
-                    int dy = k / kernel.h;
+                    int dy = k / kernel.w;
                     int dx = k % kernel.w;
                     int currentByte = (currentRow + dy) * paddingSize.w + (currentColumn + dx);
                     vr = Math.Max(paddingBytes[currentByte].R, vr);
