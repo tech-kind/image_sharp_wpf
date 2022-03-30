@@ -19,7 +19,7 @@ namespace ImageLib
             (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
             Rgb24[] paddingBytes = GetPaddingImage(rgbBytes, (image.Width, image.Height), padding);
 
-            double[] kernelBytes = CreateKernelBytes(kernel, padding, sigma);
+            double[] kernelBytes = CreateGaussianKernel(kernel, padding, sigma);
 
             (int w, int h) paddingSize = new()
             {
@@ -114,7 +114,7 @@ namespace ImageLib
             return Image.LoadPixelData(medianBytes, image.Width, image.Height);
         }
 
-        public static Image<Rgb24> SmoothingImage(Image<Rgb24> image, (int w, int h) kernel)
+        public static Image<Rgb24> SmoothingFilter(Image<Rgb24> image, (int w, int h) kernel)
         {
             Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
             Rgb24[] smoothBytes = new Rgb24[image.Width * image.Height];
@@ -168,7 +168,58 @@ namespace ImageLib
             return Image.LoadPixelData(smoothBytes, image.Width, image.Height);
         }
 
-        private static double[] CreateKernelBytes((int w, int h) kernel, (int w, int h) padding, double sigma = 1.3)
+        public static Image<Rgb24> MotionFilter(Image<Rgb24> image, (int w, int h) kernel)
+        {
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            Rgb24[] motionBytes = new Rgb24[image.Width * image.Height];
+            image.CopyPixelDataTo(rgbBytes);
+
+            (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
+            Rgb24[] paddingBytes = GetPaddingImage(rgbBytes, (image.Width, image.Height), padding);
+
+            double[] kernelBytes = CreateMotionKernel(kernel);
+
+            (int w, int h) paddingSize = new()
+            {
+                h = (image.Height + padding.h * 2),
+                w = (image.Width + padding.w * 2)
+            };
+
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
+            {
+                int y = i / paddingSize.h;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
+                {
+                    return;
+                }
+
+                double vr = 0;
+                double vg = 0;
+                double vb = 0;
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
+                {
+                    int dy = k / kernel.h;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    vr += paddingBytes[currentByte].R * kernelBytes[k];
+                    vg += paddingBytes[currentByte].G * kernelBytes[k];
+                    vb += paddingBytes[currentByte].B * kernelBytes[k];
+                }
+
+                int inputRow = image.Width * y + x;
+                motionBytes[inputRow].R = (byte)vr;
+                motionBytes[inputRow].G = (byte)vg;
+                motionBytes[inputRow].B = (byte)vb;
+            });
+
+            return Image.LoadPixelData(motionBytes, image.Width, image.Height);
+        }
+
+        private static double[] CreateGaussianKernel((int w, int h) kernel, (int w, int h) padding, double sigma = 1.3)
         {
             double[] tmpBytes = new double[kernel.w * kernel.h];
 
@@ -193,6 +244,29 @@ namespace ImageLib
                 {
                     int currentByte = y * kernel.h + x;
                     tmpBytes[currentByte] = tmpBytes[currentByte] / kernel_sum;
+                }
+            }
+
+            return tmpBytes;
+        }
+
+        private static double[] CreateMotionKernel((int w, int h) kernel)
+        {
+            double[] tmpBytes = new double[kernel.w * kernel.h];
+
+            for (int y = 0; y < kernel.h; y++)
+            {
+                for (int x = 0; x < kernel.w; x++)
+                {
+                    int currentByte = y * kernel.w + x;
+                    if (y == x)
+                    {
+                        tmpBytes[currentByte] = 1 / (double)kernel.w;
+                    }
+                    else
+                    {
+                        tmpBytes[currentByte] = 0;
+                    }
                 }
             }
 

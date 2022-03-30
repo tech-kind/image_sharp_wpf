@@ -52,6 +52,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_GAUSSIAN_FILTER, GaussianFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_MEDIAN_FILTER, MedianFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_SMOOTH_FILTER, SmoothFilter);
+            _subscriber.Subscribe(IMAGE_MANAGER_MOTION_FILTER, MotionFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -200,12 +201,25 @@ namespace ImageSharpWpf.Modules
             if (_srcImage == null) return ValueTask.FromException(new Exception());
 
             _stopWatch.Restart();
-            var smooth = ImageOperator.SmoothingImage(_srcImage, (5, 5));
+            var smooth = ImageOperator.SmoothingFilter(_srcImage, (5, 5));
 
             _stopWatch.Stop();
             PublishElapsedTime();
 
             return PublishBitmapSource(OutputType.Dst, smooth);
+        }
+
+        private ValueTask MotionFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var motion = ImageOperator.MotionFilter(_srcImage, (5, 5));
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, motion);
         }
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)

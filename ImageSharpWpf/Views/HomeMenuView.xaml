@@ -61,6 +61,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SMOOTH_FILTER}"
                 Header="平滑化フィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MOTION_FILTER}"
+                Header="モーションフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
