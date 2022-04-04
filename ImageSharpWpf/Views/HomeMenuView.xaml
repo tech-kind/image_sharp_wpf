@@ -73,6 +73,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_DIFF_FILTER}"
                 Header="微分フィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_PREWITT_FILTER}"
+                Header="Prewittフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>

@@ -258,7 +258,7 @@ namespace ImageLib
                 }
 
                 byte[] tmpBytes = new byte[kernel.h * kernel.w];
-
+                
                 for (int k = 0; k < kernel.h * kernel.w; k++)
                 {
                     int dy = k / kernel.w;
@@ -297,6 +297,60 @@ namespace ImageLib
             L8[] paddingBytes = GetPaddingImage(grayBytes, (image.Width, image.Height), padding);
 
             double[] kernelBytes = CreateDiffKernel(mode);
+
+            (int w, int h) paddingSize = new()
+            {
+                h = (image.Height + padding.h * 2),
+                w = (image.Width + padding.w * 2)
+            };
+
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
+            {
+                int y = i / paddingSize.w;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
+                {
+                    return;
+                }
+
+                double value = 0;
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
+                {
+                    int dy = k / kernel.w;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    value += paddingBytes[currentByte].PackedValue * kernelBytes[k];
+                }
+
+                value = Math.Max(value, 0);
+                value = Math.Min(value, 255);
+
+                int inputRow = image.Width * y + x;
+                diffBytes[inputRow].PackedValue = (byte)value;
+            });
+
+            return Image.LoadPixelData(diffBytes, image.Width, image.Height);
+        }
+
+        public static Image<L8> PrewittFilter(Image<Rgb24> image, (int w, int h) kernel, DiffMode mode)
+        {
+            var gray = Grayscale(image);
+            return PrewittFilter(gray, kernel, mode);
+        }
+
+        public static Image<L8> PrewittFilter(Image<L8> image, (int w, int h) kernel, DiffMode mode)
+        {
+            L8[] grayBytes = new L8[image.Width * image.Height];
+            L8[] diffBytes = new L8[image.Width * image.Height];
+            image.CopyPixelDataTo(grayBytes);
+
+            (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
+            L8[] paddingBytes = GetPaddingImage(grayBytes, (image.Width, image.Height), padding);
+
+            double[] kernelBytes = CreatePrewittKernel(kernel, mode);
 
             (int w, int h) paddingSize = new()
             {
@@ -402,6 +456,37 @@ namespace ImageLib
             {
                 tmpBytes[1] = -1;
                 tmpBytes[7] = 1;
+            }
+
+            return tmpBytes;
+        }
+
+        private static double[] CreatePrewittKernel((int w, int h) kernel, DiffMode mode)
+        {
+            double[] tmpBytes = new double[kernel.w * kernel.h];
+
+            for (int y = 0; y < kernel.h; y++)
+            {
+                for (int x = 0; x < kernel.w; x++)
+                {
+                    int currentByte = y * kernel.w + x;
+                    if (mode == DiffMode.x && x == 0)
+                    {
+                        tmpBytes[currentByte] = 1;
+                    }
+                    else if (mode == DiffMode.x && x == kernel.w - 1)
+                    {
+                        tmpBytes[currentByte] = -1;
+                    }
+                    else if (mode == DiffMode.y && y == 0)
+                    {
+                        tmpBytes[currentByte] = 1;
+                    }
+                    else if (mode == DiffMode.y && y == kernel.h - 1)
+                    {
+                        tmpBytes[currentByte] = -1;
+                    }
+                }
             }
 
             return tmpBytes;
