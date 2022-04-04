@@ -45,5 +45,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_DIFF_FILTER = "/image_manager/diff_filter";
 
         public const string IMAGE_MANAGER_PREWITT_FILTER = "/image_manager/prewitt_filter";
+
+        public const string IMAGE_MANAGER_SOBEL_FILTER = "/image_manager/sobel_filter";
     }
 }

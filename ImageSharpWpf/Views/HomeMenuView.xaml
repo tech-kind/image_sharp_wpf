@@ -77,6 +77,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_PREWITT_FILTER}"
                 Header="Prewittフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SOBEL_FILTER}"
+                Header="Sobelフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
