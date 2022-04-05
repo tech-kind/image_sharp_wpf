@@ -87,6 +87,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_LAPLACIAN_FILTER}"
                 Header="Laplacianフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_EMBOSS_FILTER}"
+                Header="Embossフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
