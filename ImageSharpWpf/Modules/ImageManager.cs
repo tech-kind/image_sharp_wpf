@@ -57,6 +57,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_DIFF_FILTER, DiffFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_PREWITT_FILTER, PrewittFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_SOBEL_FILTER, SobelFilter);
+            _subscriber.Subscribe(IMAGE_MANAGER_LAPLACIAN_FILTER, LaplacianFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -276,6 +277,19 @@ namespace ImageSharpWpf.Modules
             PublishElapsedTime();
 
             return PublishBitmapSource(OutputType.Dst, sobel);
+        }
+
+        private ValueTask LaplacianFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var laplacian = ImageOperator.LaplacianFilter(_srcImage);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, laplacian);
         }
 
         private ValueTask PublishBitmapSource(OutputType type, Image<Rgb24> image)

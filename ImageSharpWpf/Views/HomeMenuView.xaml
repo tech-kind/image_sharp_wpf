@@ -40,7 +40,7 @@
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SUBTRACTION}"
                 Header="減色処理" />
         </MenuItem>
-        <MenuItem Header="フィルタ">
+        <MenuItem Header="フィルタ1">
             <MenuItem
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_AVERAGE_POOLING}"
@@ -69,6 +69,8 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_MAXMIN_FILTER}"
                 Header="Max-Minフィルタ" />
+        </MenuItem>
+        <MenuItem Header="フィルタ2">
             <MenuItem
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_DIFF_FILTER}"
@@ -81,6 +83,10 @@
                 Command="{Binding ProcessingCommand}"
                 CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_SOBEL_FILTER}"
                 Header="Sobelフィルタ" />
+            <MenuItem
+                Command="{Binding ProcessingCommand}"
+                CommandParameter="{x:Static topic:TopicName.IMAGE_MANAGER_LAPLACIAN_FILTER}"
+                Header="Laplacianフィルタ" />
         </MenuItem>
     </Menu>
 </UserControl>
