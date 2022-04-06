@@ -59,6 +59,7 @@ namespace ImageSharpWpf.Modules
             _subscriber.Subscribe(IMAGE_MANAGER_SOBEL_FILTER, SobelFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_LAPLACIAN_FILTER, LaplacianFilter);
             _subscriber.Subscribe(IMAGE_MANAGER_EMBOSS_FILTER, EmbossFilter);
+            _subscriber.Subscribe(IMAGE_MANAGER_LOG_FILTER, LogFilter);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -299,6 +300,19 @@ namespace ImageSharpWpf.Modules
 
             _stopWatch.Restart();
             var emboss = ImageOperator.EmbossFilter(_srcImage);
+
+            _stopWatch.Stop();
+            PublishElapsedTime();
+
+            return PublishBitmapSource(OutputType.Dst, emboss);
+        }
+
+        private ValueTask LogFilter(string message, CancellationToken token)
+        {
+            if (_srcImage == null) return ValueTask.FromException(new Exception());
+
+            _stopWatch.Restart();
+            var emboss = ImageOperator.LogFilter(_srcImage, (3, 3));
 
             _stopWatch.Stop();
             PublishElapsedTime();

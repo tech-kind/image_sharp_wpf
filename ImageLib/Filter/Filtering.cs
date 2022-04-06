@@ -563,6 +563,57 @@ namespace ImageLib
             return Image.LoadPixelData(diffBytes, image.Width, image.Height);
         }
 
+        public static Image<Rgb24> LogFilter(Image<Rgb24> image, (int w, int h) kernel, double sigma = 3)
+        {
+            Rgb24[] rgbBytes = new Rgb24[image.Width * image.Height];
+            Rgb24[] logBytes = new Rgb24[image.Width * image.Height];
+            image.CopyPixelDataTo(rgbBytes);
+
+            (int w, int h) padding = (kernel.w / 2, kernel.h / 2);
+            Rgb24[] paddingBytes = GetPaddingImage(rgbBytes, (image.Width, image.Height), padding);
+
+            double[] kernelBytes = CreateLogKernel(kernel, padding, sigma);
+
+            (int w, int h) paddingSize = new()
+            {
+                h = (image.Height + padding.h * 2),
+                w = (image.Width + padding.w * 2)
+            };
+
+            Parallel.For(0, paddingSize.h * paddingSize.w, _parallelOptions, (i) =>
+            {
+                int y = i / paddingSize.w;
+                int x = i % paddingSize.w;
+
+                if (((y + kernel.h) > paddingSize.h) ||
+                    ((x + kernel.w) > paddingSize.w))
+                {
+                    return;
+                }
+
+                double vr = 0;
+                double vg = 0;
+                double vb = 0;
+
+                for (int k = 0; k < kernel.h * kernel.w; k++)
+                {
+                    int dy = k / kernel.w;
+                    int dx = k % kernel.w;
+                    int currentByte = (y + dy) * paddingSize.w + (x + dx);
+                    vr += paddingBytes[currentByte].R * kernelBytes[k];
+                    vg += paddingBytes[currentByte].G * kernelBytes[k];
+                    vb += paddingBytes[currentByte].B * kernelBytes[k];
+                }
+
+                int inputRow = image.Width * y + x;
+                logBytes[inputRow].R = (byte)vr;
+                logBytes[inputRow].G = (byte)vg;
+                logBytes[inputRow].B = (byte)vb;
+            });
+
+            return Image.LoadPixelData(logBytes, image.Width, image.Height);
+        }
+
         private static double[] CreateGaussianKernel((int w, int h) kernel, (int w, int h) padding, double sigma = 1.3)
         {
             double[] tmpBytes = new double[kernel.w * kernel.h];
@@ -755,6 +806,38 @@ namespace ImageLib
             tmpBytes[5] = 1;
             tmpBytes[7] = 1;
             tmpBytes[8] = 2;
+
+            return tmpBytes;
+        }
+
+        private static double[] CreateLogKernel((int w, int h) kernel, (int w, int h) padding, double sigma = 3)
+        {
+            double[] tmpBytes = new double[kernel.w * kernel.h];
+
+            int _x = 0, _y = 0;
+            double kernel_sum = 0;
+
+            for (int y = 0; y < kernel.h; y++)
+            {
+                for (int x = 0; x < kernel.w; x++)
+                {
+                    _y = y - padding.h;
+                    _x = x - padding.w;
+                    int currentByte = y * kernel.w + x;
+                    tmpBytes[currentByte] = (_x * _x + _y * _y - sigma * sigma)
+                        / (2 * Math.PI * Math.Pow(sigma, 6)) * Math.Exp(-(_x * _x + _y * _y) / (2 * sigma * sigma));
+                    kernel_sum += tmpBytes[currentByte];
+                }
+            }
+
+            for (int y = 0; y < kernel.h; y++)
+            {
+                for (int x = 0; x < kernel.h; x++)
+                {
+                    int currentByte = y * kernel.h + x;
+                    tmpBytes[currentByte] = tmpBytes[currentByte] / kernel_sum;
+                }
+            }
 
             return tmpBytes;
         }

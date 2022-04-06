@@ -51,5 +51,7 @@ namespace ImageSharpWpf.Utils
         public const string IMAGE_MANAGER_LAPLACIAN_FILTER = "/image_manager/laplacian_filter";
 
         public const string IMAGE_MANAGER_EMBOSS_FILTER = "image_manager/emboss_filter";
+
+        public const string IMAGE_MANAGER_LOG_FILTER = "/image_manager/log_filter";
     }
 }
